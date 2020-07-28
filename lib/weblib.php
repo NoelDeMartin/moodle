@@ -884,15 +884,26 @@ class moodle_url {
     public function out_as_local_url($escaped = true, array $overrideparams = null) {
         global $CFG;
 
-        $url = $this->out($escaped, $overrideparams);
-
-        // Url should be equal to wwwroot. If not then throw exception.
-        if (($url === $CFG->wwwroot) || (strpos($url, $CFG->wwwroot.'/') === 0)) {
-            $localurl = substr($url, strlen($CFG->wwwroot));
+        // Url should be local. If not then throw exception.
+        if ($this->is_local()) {
+            $localurl = substr($this->out($escaped, $overrideparams), strlen($CFG->wwwroot));
             return !empty($localurl) ? $localurl : '';
         } else {
             throw new coding_exception('out_as_local_url called on a non-local URL');
         }
+    }
+
+    /**
+     * Checks whether the URL is local to $CFG->wwwroot.
+     *
+     * @return bool
+     */
+    public function is_local(): bool {
+        global $CFG;
+
+        $url = $this->out(false);
+
+        return ($url === $CFG->wwwroot) || (strpos($url, $CFG->wwwroot.'/') === 0);
     }
 
     /**

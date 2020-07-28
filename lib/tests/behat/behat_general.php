@@ -1939,14 +1939,15 @@ EOF;
     }
 
     /**
-     * Visit a local URL relative to the behat root.
+     * Visit a URL.
      *
-     * @When I visit :localurl
+     * @When I visit :url
      *
-     * @param string|moodle_url $localurl The URL relative to the behat_wwwroot to visit.
+     * @param string|moodle_url $url The URL to visit. If the URL is not absolute, it'll be considered relative to behat_wwwroot.
      */
-    public function i_visit($localurl): void {
-        $localurl = new moodle_url($localurl);
-        $this->getSession()->visit($this->locate_path($localurl->out_as_local_url(false)));
+    public function i_visit($url): void {
+        $url = new moodle_url($url);
+        $url = $url->is_local() ? $this->locate_path($url->out_as_local_url(false)) : $url->out(false);
+        $this->getSession()->visit($url);
     }
 }
