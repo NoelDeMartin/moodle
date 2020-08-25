@@ -91,8 +91,10 @@ class behat_base extends Behat\MinkExtension\Context\RawMinkContext {
 
     /**
      * The JS code to check that the page is ready.
+     *
+     * The document must be complete and either M.util.pending_js must be empty, or it must not be defined at all.
      */
-    const PAGE_READY_JS = '(typeof M !== "undefined" && M.util && M.util.pending_js && !Boolean(M.util.pending_js.length)) && (document.readyState === "complete")';
+    const PAGE_READY_JS = "document.readyState === 'complete' && (!M || !M.util || typeof M.util.pending_js === 'undefined' || M.util.pending_js.length === 0)";
 
     /**
      * Locates url, based on provided path.
@@ -818,19 +820,18 @@ EOF;
             try {
                 $jscode = trim(preg_replace('/\s+/', ' ', '
                     return (function() {
-                        if (typeof M === "undefined") {
-                            if (document.readyState === "complete") {
-                                return "";
-                            } else {
-                                return "incomplete";
-                            }
-                        } else if (' . self::PAGE_READY_JS . ') {
-                            return "";
-                        } else if (typeof M.util !== "undefined") {
-                            return M.util.pending_js.join(":");
-                        } else {
-                            return "incomplete"
+                        if (document.readyState !== "complete") {
+                            // Document is not yet ready.
+                            return "incomplete";
                         }
+
+                        if (!M || !M.util || typeof M.util.pending_js === "undefined") {
+                            // Page is complete but M, M.util, or M.util.pending_js do not exist.
+                            // This page may not be Moodle.
+                            return "";
+                        }
+
+                        return M.util.pending_js.join(":");
                     })()'));
                 $pending = self::evaluate_script_in_session($session, $jscode);
             } catch (NoSuchWindow $nsw) {
