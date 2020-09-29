@@ -409,13 +409,17 @@ class database_manager {
      * This function will generate all the needed SQL statements, specific for each
      * RDBMS type and, finally, it will execute all those statements against the DB.
      *
-     * @param stdClass $xmldb_structure xmldb_structure object.
+     * @param xmldb_structure $xmldb_structure xmldb_structure object.
      * @return void
      */
     public function install_from_xmldb_structure($xmldb_structure) {
 
         if (!$sqlarr = $this->generator->getCreateStructureSQL($xmldb_structure)) {
             return; // nothing to do
+        }
+
+        if ($xmldb_structure->allowDefaultNullChar()) {
+            $this->generator->default_for_char = null;
         }
 
         $tablenames = array();

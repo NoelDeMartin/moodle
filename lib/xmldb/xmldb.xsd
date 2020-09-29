@@ -168,7 +168,8 @@
       </xs:sequence>
       <xs:attribute name="PATH"    type="xs:string" use="required" />
       <xs:attribute name="VERSION" type="xs:string" use="required" />
-      <xs:attribute name="COMMENT" type="xs:string" use="optional" />
+      <xs:attribute name="COMMENT" type="xs:string" use="required" />
+      <xs:attribute name="ALLOWDEFAULTNULLCHAR" type="trueFalse" use="optional" />
     </xs:complexType>
   </xs:element>
 

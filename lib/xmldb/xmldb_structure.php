@@ -34,6 +34,9 @@ class xmldb_structure extends xmldb_object {
     /** @var string */
     protected $version;
 
+    /** @var bool whether to allow DEFAULT NULL clause on CHAR columns */
+    protected $allowdefaultnullchar;
+
     /** @var array tables */
     protected $tables;
 
@@ -45,6 +48,7 @@ class xmldb_structure extends xmldb_object {
         parent::__construct($name);
         $this->path = null;
         $this->version = null;
+        $this->allowdefaultnullchar = false;
         $this->tables = array();
     }
 
@@ -62,6 +66,14 @@ class xmldb_structure extends xmldb_object {
      */
     public function getVersion() {
         return $this->version;
+    }
+
+    /**
+     * Returns whether to allow DEFAULT NULL clause on CHAR columns
+     * @return bool
+     */
+    public function allowDefaultNullChar() {
+        return $this->allowdefaultnullchar;
     }
 
     /**
@@ -265,6 +277,19 @@ class xmldb_structure extends xmldb_object {
             $result = false;
         }
 
+        if (isset($xmlarr['XMLDB']['@']['ALLOWDEFAULTNULLCHAR'])) {
+            $allowdefaultnullchar = strtolower(trim($xmlarr['XMLDB']['@']['ALLOWDEFAULTNULLCHAR']));
+            if ($allowdefaultnullchar == 'true') {
+                $this->allowdefaultnullchar = true;
+            } else if ($allowdefaultnullchar == 'false') {
+                $this->allowdefaultnullchar = false;
+            } else {
+                $this->errormsg = 'Incorrect ALLOWDEFAULTNULLCHAR attribute (true/false allowed)';
+                $this->debug($this->errormsg);
+                $result = false;
+            }
+        }
+
         // Iterate over tables
         if (isset($xmlarr['XMLDB']['#']['TABLES']['0']['#']['TABLE'])) {
             foreach ($xmlarr['XMLDB']['#']['TABLES']['0']['#']['TABLE'] as $xmltable) {
@@ -345,6 +370,9 @@ class xmldb_structure extends xmldb_object {
         $o.= ' VERSION="' . $this->version . '"';
         if ($this->comment) {
             $o.= ' COMMENT="' . htmlspecialchars($this->comment) . '"'."\n";
+        }
+        if ($this->allowdefaultnullchar) {
+            $o.= ' ALLOWDEFAULTNULLCHAR="' . ($this->allowdefaultnullchar ? 'true' : 'false') . '"'."\n";
         }
         $rel = array_fill(0, count(explode('/', $this->path)), '..');
         $rel = implode('/', $rel);
